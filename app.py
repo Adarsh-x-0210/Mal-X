@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, render_template
 import os
 import hashlib
 
@@ -99,7 +99,7 @@ def analyze_file(file_bytes, filename):
 
 @app.route('/')
 def home():
-    return send_file('index.html')
+    return render_template('index.html')
 
 
 @app.route('/scan', methods=['POST'])
