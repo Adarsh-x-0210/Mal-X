@@ -1,0 +1,149 @@
+from flask import Flask, request, jsonify, send_file
+import os
+import hashlib
+
+app = Flask(__name__)
+
+# Simple malware signature database (in real project, use a proper database)
+MALWARE_SIGNATURES = {
+    # Common malware patterns (hashes of known malicious content)
+    "e99a18c428cb38d5f260853678922e03": "Trojan.Generic",
+    "5d41402abc4b2a76b9719d911017c592": "Virus.Test",
+    "d41d8cd98f00b204e9800998ecf8427e": "Empty.File.Threat",
+}
+
+# Suspicious file extensions
+SUSPICIOUS_EXTENSIONS = {
+    '.exe', '.bat', '.cmd', '.scr', '.com', '.pif', '.application', '.gadget',
+    '.msi', '.msp', '.com', '.scr', '.hta', '.cpl', '.msc', '.jar', '.bin',
+    '.dmg', '.app', '.apk', '.deb', '.rpm'
+}
+
+
+def calculate_file_hash(file_bytes):
+    """Calculate MD5 hash of file content"""
+    return hashlib.md5(file_bytes).hexdigest()
+
+
+def analyze_file(file_bytes, filename):
+    """Analyze file for potential malware"""
+    file_hash = calculate_file_hash(file_bytes)
+    file_extension = os.path.splitext(filename)[1].lower()
+
+    # Check against known malware signatures
+    if file_hash in MALWARE_SIGNATURES:
+        return {
+            'malicious': True,
+            'confidence': 95.0,
+            'risk': 'CRITICAL',
+            'threat_name': MALWARE_SIGNATURES[file_hash],
+            'reason': 'Known malware signature detected'
+        }
+
+    # Check file extension
+    if file_extension in SUSPICIOUS_EXTENSIONS:
+        return {
+            'malicious': True,
+            'confidence': 70.0,
+            'risk': 'HIGH',
+            'threat_name': f'Suspicious.{file_extension[1:].upper()}',
+            'reason': f'Suspicious file extension: {file_extension}'
+        }
+
+    # Check file size (very large or very small files)
+    file_size = len(file_bytes)
+    if file_size > 100 * 1024 * 1024:  # > 100MB
+        return {
+            'malicious': True,
+            'confidence': 60.0,
+            'risk': 'MEDIUM',
+            'threat_name': 'Oversized.File',
+            'reason': 'File size exceeds normal limits'
+        }
+    elif file_size < 10:  # < 10 bytes
+        return {
+            'malicious': True,
+            'confidence': 80.0,
+            'risk': 'HIGH',
+            'threat_name': 'Underweight.File',
+            'reason': 'File size too small to be legitimate'
+        }
+
+    # Check for embedded scripts
+    suspicious_keywords = [
+        b'powershell', b'cmd.exe', b'wscript', b'cscript', b'regsvr32',
+        b'mshta', b'rundll32', b'certutil', b'bitsadmin'
+    ]
+
+    file_content_lower = file_bytes.lower()
+    found_keywords = [kw.decode() for kw in suspicious_keywords if kw in file_content_lower]
+
+    if found_keywords:
+        return {
+            'malicious': True,
+            'confidence': 75.0,
+            'risk': 'HIGH',
+            'threat_name': 'Script.Executor',
+            'reason': f'Suspicious commands detected: {", ".join(found_keywords)}'
+        }
+
+    # File appears clean
+    return {
+        'malicious': False,
+        'confidence': 85.0,
+        'risk': 'LOW',
+        'threat_name': 'Clean',
+        'reason': 'No threats detected'
+    }
+
+
+@app.route('/')
+def home():
+    return send_file('index.html')
+
+
+@app.route('/scan', methods=['POST'])
+def scan_file():
+    file = request.files.get('file')
+    if not file:
+        return jsonify({'error': 'No file provided'}), 400
+
+    try:
+        file_bytes = file.read()
+        filename = file.filename
+
+        if len(file_bytes) == 0:
+            return jsonify({'error': 'Empty file'}), 400
+
+        # Analyze the file
+        result = analyze_file(file_bytes, filename)
+
+        response = {
+            'filename': filename,
+            'malicious': result['malicious'],
+            'confidence': result['confidence'],
+            'risk': result['risk'],
+            'threat_name': result['threat_name'],
+            'reason': result['reason'],
+            'file_size': len(file_bytes),
+            'file_hash': calculate_file_hash(file_bytes)
+        }
+
+        return jsonify(response)
+
+    except Exception as e:
+        return jsonify({'error': f'Scan failed: {str(e)}'}), 500
+
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({
+        'status': 'running',
+        'version': '1.0.0',
+        'signatures_loaded': len(MALWARE_SIGNATURES)
+    })
+
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
