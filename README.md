@@ -24,8 +24,8 @@ python app.py
 
 ###Step 3: Access the Web Interface
 Open your browser and navigate to:
-text[
-https://mal-x.vercel.app/
+text
+http://localhost:5000
 
 
 

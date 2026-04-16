@@ -1,276 +1,175 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Mal-X </title>
+    <title>Mal-X</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
+            margin: 0;
+            font-family: 'Segoe UI';
+            background: #0f172a;
+            color: #e2e8f0;
         }
+
         .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-        .header {
-            background: #2c3e50;
-            color: white;
+            max-width: 900px;
+            margin: auto;
             padding: 30px;
+        }
+
+        h1 {
             text-align: center;
+            color: #38bdf8;
         }
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-        .header p {
-            opacity: 0.8;
-            font-size: 1.1em;
-        }
-        .content {
-            padding: 40px;
-        }
+
         .upload-area {
-            border: 3px dashed #bdc3c7;
-            border-radius: 10px;
-            padding: 60px 20px;
+            border: 2px dashed #38bdf8;
+            padding: 40px;
             text-align: center;
-            transition: all 0.3s ease;
+            border-radius: 12px;
             cursor: pointer;
-            margin-bottom: 30px;
+            margin-top: 30px;
         }
-        .upload-area:hover {
-            border-color: #3498db;
-            background: #f8f9fa;
-        }
-        .upload-area.highlight {
-            border-color: #2ecc71;
-            background: #d5f4e6;
-        }
-        .upload-icon {
-            font-size: 4em;
-            margin-bottom: 20px;
-            color: #7f8c8d;
-        }
+
         .btn {
-            background: #e74c3c;
-            color: white;
+            background: #38bdf8;
+            color: black;
+            padding: 12px 30px;
             border: none;
-            padding: 15px 40px;
-            font-size: 1.2em;
             border-radius: 8px;
+            margin-top: 20px;
             cursor: pointer;
-            transition: background 0.3s ease;
-            font-weight: bold;
         }
-        .btn:hover {
-            background: #c0392b;
+
+        .logs {
+            background: black;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: monospace;
+            height: 120px;
+            overflow-y: auto;
+            border-radius: 8px;
         }
-        .btn:disabled {
-            background: #bdc3c7;
-            cursor: not-allowed;
-        }
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-            color: #3498db;
-            font-size: 1.1em;
-        }
+
         .result {
             margin-top: 30px;
-            padding: 25px;
+            padding: 20px;
             border-radius: 10px;
-            display: none;
         }
-        .result.malicious {
-            background: #ffebee;
-            border: 2px solid #e74c3c;
-            color: #c62828;
+
+        .safe { background: #052e16; }
+        .danger { background: #450a0a; }
+
+        .badge {
+            padding: 5px 10px;
+            border-radius: 6px;
         }
-        .result.clean {
-            background: #e8f5e8;
-            border: 2px solid #2ecc71;
-            color: #2e7d32;
+
+        .low { background: green; }
+        .medium { background: orange; }
+        .high { background: red; }
+        .critical { background: darkred; }
+
+        .card {
+            background: #1e293b;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 8px;
         }
-        .result h3 {
-            margin-bottom: 15px;
-            font-size: 1.5em;
-        }
-        .result-info {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 15px;
-        }
-        .risk-badge {
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 0.9em;
-        }
-        .risk-critical { background: #c62828; color: white; }
-        .risk-high { background: #e74c3c; color: white; }
-        .risk-medium { background: #f39c12; color: white; }
-        .risk-low { background: #2ecc71; color: white; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🛡️ Mal-X</h1>
-        <p>Advanced Malware Detection System</p>
+
+<div class="container">
+    <h1>🛡️ Mal-X Malware Scanner</h1>
+
+    <div class="upload-area" onclick="fileInput.click()" id="uploadArea">
+        Drag & Drop or Click to Upload File
+        <input type="file" id="fileInput" hidden>
     </div>
 
-        <div class="content">
-            <div class="upload-area" id="uploadArea">
-                <div class="upload-icon">🛡️</div>
-                <h3>Mal-X File Analysis</h3>
-                <p>Drag & Drop or click to scan for threats</p>
-                <input type="file" id="fileInput" style="display: none">
+    <button class="btn" onclick="scanFile()" id="scanBtn" disabled>Start Scan</button>
+
+    <div class="logs" id="logs"></div>
+
+    <div id="result"></div>
+</div>
+
+<script>
+let file;
+
+const fileInput = document.getElementById('fileInput');
+const scanBtn = document.getElementById('scanBtn');
+const logs = document.getElementById('logs');
+
+fileInput.addEventListener('change', e => {
+    file = e.target.files[0];
+    scanBtn.disabled = false;
+    log(`Selected: ${file.name}`);
+});
+
+function log(msg){
+    logs.innerHTML += `[+] ${msg}<br>`;
+    logs.scrollTop = logs.scrollHeight;
+}
+
+function scanFile(){
+    if(!file) return;
+
+    logs.innerHTML = "";
+    log("Uploading file...");
+    log("Calculating hashes...");
+    log("Analyzing content...");
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    fetch('/scan',{
+        method:'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        log("Scan complete ✔");
+        showResult(data);
+    });
+}
+
+function showResult(data){
+    const resultDiv = document.getElementById('result');
+
+    const risk = data.verdict.risk.toLowerCase();
+
+    resultDiv.innerHTML = `
+        <div class="result ${data.verdict.malicious ? 'danger' : 'safe'}">
+
+            <h2>${data.verdict.malicious ? '❌ Threat Detected' : '✅ File Safe'}</h2>
+
+            <div class="card">
+                <b>File:</b> ${data.file.name}<br>
+                <b>Size:</b> ${(data.file.size/1024).toFixed(2)} KB<br>
+                <b>Extension:</b> ${data.file.extension}
             </div>
 
-            <div style="text-align: center;">
-                <button class="btn" id="scanBtn" onclick="scanFile()" disabled>Run Mal-X Scan</button>            </div>
-
-            <div class="loading" id="loading">
-                <div>🛡️ Mal-X is analyzing your file...</div>
+            <div class="card">
+                <b>Risk:</b> <span class="badge ${risk}">${data.verdict.risk}</span><br>
+                <b>Confidence:</b> ${data.verdict.confidence}%<br>
+                <b>Score:</b> ${data.analysis.score}
             </div>
 
-            <div class="result" id="result"></div>
+            <div class="card">
+                <b>MD5:</b><br>${data.hashes.md5}<br><br>
+                <b>SHA256:</b><br>${data.hashes.sha256}
+            </div>
+
+            <div class="card">
+                <b>Indicators:</b><br>
+                ${data.indicators.length ? data.indicators.join("<br>") : "None"}
+            </div>
+
         </div>
-    </div>
+    `;
+}
+</script>
 
-    <script>
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('fileInput');
-        const scanBtn = document.getElementById('scanBtn');
-        const loading = document.getElementById('loading');
-        const result = document.getElementById('result');
-
-        let selectedFile = null;
-
-        // File selection handlers
-        uploadArea.addEventListener('click', () => fileInput.click());
-
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleFileSelect(e.target.files[0]);
-            }
-        });
-
-        // Drag and drop handlers
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('highlight');
-        });
-
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('highlight');
-        });
-
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('highlight');
-            if (e.dataTransfer.files.length > 0) {
-                handleFileSelect(e.dataTransfer.files[0]);
-            }
-        });
-
-        function handleFileSelect(file) {
-            selectedFile = file;
-            scanBtn.disabled = false;
-            uploadArea.innerHTML = `
-                <div class="upload-icon">✅</div>
-                <h3>${file.name}</h3>
-                <p>Size: ${(file.size / 1024).toFixed(2)} KB</p>
-                <p>Click "Scan for Malware" to continue</p>
-            `;
-            result.style.display = 'none';
-        }
-
-        function scanFile() {
-            if (!selectedFile) return;
-
-            scanBtn.disabled = true;
-            loading.style.display = 'block';
-            result.style.display = 'none';
-
-            const formData = new FormData();
-            formData.append('file', selectedFile);
-
-            fetch('/scan', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    showError(data.error);
-                } else {
-                    showResult(data);
-                }
-            })
-            .catch(error => {
-                showError('Scan failed: ' + error.message);
-            })
-            .finally(() => {
-                scanBtn.disabled = false;
-                loading.style.display = 'none';
-            });
-        }
-
-        function showResult(data) {
-            result.className = `result ${data.malicious ? 'malicious' : 'clean'}`;
-
-            const riskClass = `risk-${data.risk.toLowerCase()}`;
-
-            result.innerHTML = `
-                <h3>${data.malicious ? '❌ THREAT DETECTED' : '✅ FILE IS CLEAN'}</h3>
-                <p><strong>File:</strong> ${data.filename}</p>
-                <p><strong>Threat:</strong> ${data.threat_name}</p>
-                <p><strong>Reason:</strong> ${data.reason}</p>
-
-                <div class="result-info">
-                    <div>
-                        <strong>Confidence:</strong><br>
-                        ${data.confidence}%
-                    </div>
-                    <div>
-                        <strong>Risk Level:</strong><br>
-                        <span class="risk-badge ${riskClass}">${data.risk}</span>
-                    </div>
-                    <div>
-                        <strong>File Size:</strong><br>
-                        ${(data.file_size / 1024).toFixed(2)} KB
-                    </div>
-                    <div>
-                        <strong>File Hash:</strong><br>
-                        <small>${data.file_hash}</small>
-                    </div>
-                </div>
-            `;
-
-            result.style.display = 'block';
-        }
-
-        function showError(message) {
-            result.className = 'result malicious';
-            result.innerHTML = `
-                <h3>❌ Scan Error</h3>
-                <p>${message}</p>
-            `;
-            result.style.display = 'block';
-        }
-    </script>
 </body>
 </html>
