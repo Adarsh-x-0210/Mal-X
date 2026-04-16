@@ -6,12 +6,12 @@
         body {
             margin: 0;
             font-family: 'Segoe UI';
-            background: #0f172a;
+            background: #020617;
             color: #e2e8f0;
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: auto;
             padding: 30px;
         }
@@ -19,27 +19,54 @@
         h1 {
             text-align: center;
             color: #38bdf8;
+            letter-spacing: 1px;
         }
 
+        /* Upload */
         .upload-area {
             border: 2px dashed #38bdf8;
-            padding: 40px;
+            padding: 50px;
             text-align: center;
             border-radius: 12px;
             cursor: pointer;
-            margin-top: 30px;
+            transition: 0.3s;
         }
 
+        .upload-area:hover {
+            background: #0f172a;
+        }
+
+        /* Button */
         .btn {
+            display: block;
+            margin: 20px auto;
             background: #38bdf8;
             color: black;
             padding: 12px 30px;
-            border: none;
             border-radius: 8px;
-            margin-top: 20px;
             cursor: pointer;
+            border: none;
+            font-weight: bold;
         }
 
+        /* Progress */
+        .progress {
+            height: 8px;
+            background: #1e293b;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: #38bdf8;
+            transition: width 0.4s ease;
+        }
+
+        /* Logs */
         .logs {
             background: black;
             padding: 15px;
@@ -50,75 +77,120 @@
             border-radius: 8px;
         }
 
+        /* Cards */
+        .card {
+            background: #0f172a;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(56,189,248,0.2);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        /* Result */
         .result {
             margin-top: 30px;
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 12px;
         }
 
-        .safe { background: #052e16; }
-        .danger { background: #450a0a; }
+        .safe { border-left: 5px solid #22c55e; }
+        .danger { border-left: 5px solid #ef4444; }
 
+        /* Badges */
         .badge {
             padding: 5px 10px;
             border-radius: 6px;
+            font-size: 0.9em;
         }
 
-        .low { background: green; }
-        .medium { background: orange; }
-        .high { background: red; }
-        .critical { background: darkred; }
+        .low { background: #22c55e; }
+        .medium { background: #f59e0b; }
+        .high { background: #ef4444; }
+        .critical { background: #7f1d1d; }
 
-        .card {
+        /* Indicator tags */
+        .tag {
+            display: inline-block;
             background: #1e293b;
-            padding: 15px;
-            margin-top: 10px;
-            border-radius: 8px;
+            padding: 5px 10px;
+            border-radius: 6px;
+            margin: 3px;
+            font-size: 0.85em;
         }
+
     </style>
 </head>
+
 <body>
 
 <div class="container">
-    <h1>🛡️ Mal-X Malware Scanner</h1>
 
-    <div class="upload-area" onclick="fileInput.click()" id="uploadArea">
-        Drag & Drop or Click to Upload File
+    <h1>🛡️ Mal-X Threat Analyzer</h1>
+
+    <div class="upload-area" onclick="fileInput.click()">
+        Click or Drag File to Scan
         <input type="file" id="fileInput" hidden>
     </div>
 
     <button class="btn" onclick="scanFile()" id="scanBtn" disabled>Start Scan</button>
 
+    <div class="progress" id="progress">
+        <div class="progress-bar" id="bar"></div>
+    </div>
+
     <div class="logs" id="logs"></div>
 
     <div id="result"></div>
+
 </div>
 
 <script>
-let file;
 
+let file;
 const fileInput = document.getElementById('fileInput');
 const scanBtn = document.getElementById('scanBtn');
 const logs = document.getElementById('logs');
+const progress = document.getElementById('progress');
+const bar = document.getElementById('bar');
 
 fileInput.addEventListener('change', e => {
     file = e.target.files[0];
     scanBtn.disabled = false;
-    log(`Selected: ${file.name}`);
+    log("File selected: " + file.name);
 });
 
 function log(msg){
-    logs.innerHTML += `[+] ${msg}<br>`;
+    logs.innerHTML += "[+] " + msg + "<br>";
     logs.scrollTop = logs.scrollHeight;
+}
+
+function animateProgress(){
+    progress.style.display = "block";
+    let width = 0;
+    let interval = setInterval(() => {
+        width += 10;
+        bar.style.width = width + "%";
+        if(width >= 100) clearInterval(interval);
+    }, 200);
 }
 
 function scanFile(){
     if(!file) return;
 
     logs.innerHTML = "";
-    log("Uploading file...");
-    log("Calculating hashes...");
-    log("Analyzing content...");
+    bar.style.width = "0%";
+
+    log("Uploading...");
+    log("Hashing...");
+    log("Analyzing patterns...");
+
+    animateProgress();
 
     const formData = new FormData();
     formData.append('file', file);
@@ -135,40 +207,47 @@ function scanFile(){
 }
 
 function showResult(data){
-    const resultDiv = document.getElementById('result');
 
     const risk = data.verdict.risk.toLowerCase();
 
-    resultDiv.innerHTML = `
+    document.getElementById('result').innerHTML = `
         <div class="result ${data.verdict.malicious ? 'danger' : 'safe'}">
 
             <h2>${data.verdict.malicious ? '❌ Threat Detected' : '✅ File Safe'}</h2>
 
-            <div class="card">
-                <b>File:</b> ${data.file.name}<br>
-                <b>Size:</b> ${(data.file.size/1024).toFixed(2)} KB<br>
-                <b>Extension:</b> ${data.file.extension}
+            <div class="grid">
+
+                <div class="card">
+                    <b>File Info</b><br>
+                    Name: ${data.file.name}<br>
+                    Size: ${(data.file.size/1024).toFixed(2)} KB<br>
+                    Extension: ${data.file.extension}
+                </div>
+
+                <div class="card">
+                    <b>Threat Info</b><br>
+                    Risk: <span class="badge ${risk}">${data.verdict.risk}</span><br>
+                    Confidence: ${data.verdict.confidence}%<br>
+                    Score: ${data.analysis.score}
+                </div>
+
             </div>
 
             <div class="card">
-                <b>Risk:</b> <span class="badge ${risk}">${data.verdict.risk}</span><br>
-                <b>Confidence:</b> ${data.verdict.confidence}%<br>
-                <b>Score:</b> ${data.analysis.score}
+                <b>Hashes</b><br>
+                MD5: ${data.hashes.md5}<br>
+                SHA256: ${data.hashes.sha256}
             </div>
 
             <div class="card">
-                <b>MD5:</b><br>${data.hashes.md5}<br><br>
-                <b>SHA256:</b><br>${data.hashes.sha256}
-            </div>
-
-            <div class="card">
-                <b>Indicators:</b><br>
-                ${data.indicators.length ? data.indicators.join("<br>") : "None"}
+                <b>Indicators</b><br>
+                ${data.indicators.map(i => `<span class="tag">${i}</span>`).join("")}
             </div>
 
         </div>
     `;
 }
+
 </script>
 
 </body>
