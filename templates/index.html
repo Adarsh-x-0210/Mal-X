@@ -2,12 +2,24 @@
 <html>
 <head>
     <title>Mal-X Dashboard</title>
+
     <style>
         body {
             margin: 0;
             font-family: 'Segoe UI';
-            background: #020617;
+            background: radial-gradient(circle at top, #0ea5e9 0%, #020617 40%);
             color: #e2e8f0;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 30%, rgba(56,189,248,0.15), transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(139,92,246,0.15), transparent 40%);
+            z-index: -1;
         }
 
         .container {
@@ -34,6 +46,13 @@
             background: #0f172a;
         }
 
+        /* File info */
+        #fileInfo {
+            text-align: center;
+            margin-top: 10px;
+            color: #94a3b8;
+        }
+
         /* Button */
         .btn {
             display: block;
@@ -47,7 +66,28 @@
             font-weight: bold;
         }
 
-        /* Dashboard cards */
+        /* Spinner */
+        #spinner {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .loader {
+            border: 5px solid #1e293b;
+            border-top: 5px solid #38bdf8;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            margin: auto;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Summary cards */
         .summary {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -61,10 +101,6 @@
             border-radius: 10px;
             text-align: center;
             box-shadow: 0 0 10px rgba(56,189,248,0.2);
-        }
-
-        .summary-card h2 {
-            margin: 10px 0;
         }
 
         /* Result */
@@ -114,7 +150,7 @@
 
 <div class="container">
 
-    <h1>🛡️ Mal-X Dashboard</h1>
+    <h1>🛡️ Mal-X Threat Analyzer</h1>
 
     <!-- Upload -->
     <div class="upload-area" onclick="fileInput.click()">
@@ -122,9 +158,17 @@
         <input type="file" id="fileInput" hidden>
     </div>
 
+    <div id="fileInfo"></div>
+
     <button class="btn" onclick="scanFile()" id="scanBtn" disabled>Scan File</button>
 
-    <!-- Summary Cards -->
+    <!-- Spinner -->
+    <div id="spinner">
+        <div class="loader"></div>
+        <p>Scanning file...</p>
+    </div>
+
+    <!-- Summary -->
     <div class="summary" id="summary" style="display:none;">
         <div class="summary-card">
             <p>Risk Level</p>
@@ -155,10 +199,17 @@ const scanBtn = document.getElementById('scanBtn');
 fileInput.addEventListener('change', e => {
     file = e.target.files[0];
     scanBtn.disabled = false;
+
+    document.getElementById('fileInfo').innerText =
+        `Selected: ${file.name} (${(file.size/1024).toFixed(2)} KB)`;
 });
 
 function scanFile(){
     if(!file) return;
+
+    document.getElementById('spinner').style.display = "block";
+    document.getElementById('result').innerHTML = "";
+    document.getElementById('summary').style.display = "none";
 
     const formData = new FormData();
     formData.append('file', file);
@@ -170,6 +221,9 @@ function scanFile(){
     .then(res => res.json())
     .then(data => {
         showResult(data);
+    })
+    .finally(() => {
+        document.getElementById('spinner').style.display = "none";
     });
 }
 
@@ -206,7 +260,9 @@ function showResult(data){
 
             <div class="card">
                 <b>Indicators</b><br>
-                ${data.indicators.map(i => `<span class="tag">${i}</span>`).join("")}
+                ${data.indicators.length 
+                    ? data.indicators.map(i => `<span class="tag">${i}</span>`).join("") 
+                    : "No suspicious indicators"}
             </div>
 
         </div>
