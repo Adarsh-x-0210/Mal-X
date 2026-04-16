@@ -1,113 +1,138 @@
-# MAL-X : AI powered malware detection system 
-# This README.md file provides clear, step-by-step instructions for running the malware detection system without including any code files. It's formatted for easy reading and includes all necessary information for users to get started quickly.
+# 🛡️ MAL-X — AI Powered Malware Detection System
 
-# Malware Detection System 🛡️
+![Python](https://img.shields.io/badge/Python-3.6+-blue?logo=python)
+![Flask](https://img.shields.io/badge/Flask-2.3.3-black?logo=flask)
+![Status](https://img.shields.io/badge/Status-Active-success)
+![License](https://img.shields.io/badge/License-MIT-green)
+![Contributions](https://img.shields.io/badge/Contributions-Welcome-orange)
 
-A simple web-based malware detection system that analyzes files for potential threats using signature-based detection and heuristic analysis.
+---
 
-## 📦 What's Included
+## 🚀 Overview
 
-- **Backend**: Flask server with malware detection logic
-- **Frontend**: Clean web interface for file uploads
-- **Detection**: Signature-based and heuristic analysis
-- **Reporting**: Detailed threat analysis with confidence scores
+**MAL-X** is a web-based malware detection system that analyzes files using a combination of:
 
-## 🚀 Quick Start
+- Signature-based detection  
+- Heuristic analysis  
+- Entropy analysis (advanced)  
+- Suspicious behavior detection  
 
-### Step 1: Install Python Dependencies
+It provides **real-time threat analysis**, confidence scoring, and a modern dashboard UI.
+
+---
+
+## 📸 Features
+
+✅ Signature Detection (MD5 + SHA256)  
+✅ File Extension Analysis  
+✅ Entropy-based Detection (packed/encrypted files)  
+✅ Suspicious Keyword Detection  
+✅ Heuristic Risk Scoring System  
+✅ Clean Dashboard UI  
+✅ File Hash Generation  
+✅ Indicator-based Threat Explanation  
+
+---
+
+## 🏗️ Project Structure
+Mal-X/
+│
+├── app.py
+├── templates/
+│ └── index.html
+├── requirements.txt
+├── vercel.json
+└── README.md
+
+
+
+---
+
+## ⚙️ Installation & Setup
+
+### 1️⃣ Install dependencies
 ```bash
 pip install -r requirements.txt
+2️⃣ Run the application
+Bash
 
-###Step 2: Run the Application
-```bash
 python app.py
+3️⃣ Open in browser
 
-###Step 3: Access the Web Interface
-Open your browser and navigate to:
-text
 http://localhost:5000
+🎯 How It Works
+Upload a file
 
+System extracts hashes & metadata
 
+Runs detection checks:
 
-##🎯 How to Use
-Upload a File: Drag and drop or click to select any file
+Signature match
 
-Scan: Click the "Scan for Malware" button
+Extension analysis
 
-View Results: Get instant analysis with threat details
+Entropy calculation
 
-###🔍 Detection Features
-✅ Signature Detection: MD5 hash matching against known malware
+Keyword detection
 
-✅ File Extension Analysis: Flags suspicious file types
+Generates risk score
 
-✅ Size Analysis: Detects unusually large/small files
+Displays results in dashboard
 
-✅ Content Scanning: Identifies suspicious script patterns
+📊 Detection Logic
+Feature	Description
+Signature Matching	Known malware hash detection
+Heuristic Analysis	Rule-based suspicious behavior
+Entropy Check	Detects packed/encrypted files
+Keyword Scan	Detects command execution patterns
+Risk Scoring	Combines all signals into final verdict
 
-✅ Risk Assessment: Confidence scores and threat levels
+🚨 Risk Levels
+Level	Meaning
+CRITICAL 🚨	Known malware detected
+HIGH 🔴	Strong malicious indicators
+MEDIUM 🟡	Suspicious behavior
+LOW 🟢	Likely safe
 
-###📊 Result Interpretation
-Risk Levels:
-CRITICAL 🚨 - Known malware match
+📈 Confidence Levels
+90–100% → Very High
 
-HIGH 🔴 - Highly suspicious characteristics
+70–89% → High
 
-MEDIUM 🟡 - Moderate risk indicators
+50–69% → Medium
 
-LOW 🟢 - Minimal or no threats
+<50% → Low
 
-###Confidence Scores:
-90-100%: Very high confidence
+🛠️ Requirements
+Python 3.6+
 
-70-89%: High confidence
+Flask
 
-50-69%: Moderate confidence
+Modern Browser
 
-Below 50%: Low confidence
+⚠️ Disclaimer
+This project is built for educational and demonstration purposes only.
 
-###🛠️ Requirements
-Python 3.6 or higher
+It should not be used as a replacement for enterprise-grade security tools.
 
-Flask 2.3.3
+🧠 Future Improvements
+🔍 VirusTotal API integration
 
-Modern web browser
+📊 Graph-based threat visualization
 
-###⚠️ Important Notes
-This is a demonstration system for educational purposes
+🗂 Scan history tracking
 
-Always use additional security measures in production
+⚛️ React frontend upgrade
 
-Keep malware signatures updated regularly
+🧠 Machine learning-based detection
 
-System works best with common file types
+🤝 Contributing
+Contributions are welcome!
 
-###🆘 Troubleshooting
-Common Issues:
-"python not found"
+Feel free to fork the repo and submit a pull request.
 
-Install Python from python.org
+⭐ If you like this project
+Give it a star ⭐ on GitHub!
 
-"pip not found"
-
-Try: python -m pip install -r requirements.txt
-
-Port 5000 in use
-
-System will auto-select another port
-
-File upload fails
-
-Ensure file size < 100MB
-
-Try different file formats
-
-Windows:
-Use Command Prompt as Administrator if needed
-
-Mac/Linux:
-Use python3 if python doesn't work: python3 app.py
-
-
-Happy scanning! 🛡️
-
+👨‍💻 Author
+Adarsh Ajnadkar
