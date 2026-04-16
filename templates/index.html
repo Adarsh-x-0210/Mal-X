@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Mal-X</title>
+    <title>Mal-X Dashboard</title>
     <style>
         body {
             margin: 0;
@@ -11,7 +11,7 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1100px;
             margin: auto;
             padding: 30px;
         }
@@ -19,17 +19,15 @@
         h1 {
             text-align: center;
             color: #38bdf8;
-            letter-spacing: 1px;
         }
 
         /* Upload */
         .upload-area {
             border: 2px dashed #38bdf8;
-            padding: 50px;
+            padding: 40px;
             text-align: center;
             border-radius: 12px;
             cursor: pointer;
-            transition: 0.3s;
         }
 
         .upload-area:hover {
@@ -44,52 +42,29 @@
             color: black;
             padding: 12px 30px;
             border-radius: 8px;
-            cursor: pointer;
             border: none;
+            cursor: pointer;
             font-weight: bold;
         }
 
-        /* Progress */
-        .progress {
-            height: 8px;
-            background: #1e293b;
-            border-radius: 5px;
-            overflow: hidden;
-            margin-top: 15px;
-            display: none;
+        /* Dashboard cards */
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 30px;
         }
 
-        .progress-bar {
-            height: 100%;
-            width: 0%;
-            background: #38bdf8;
-            transition: width 0.4s ease;
-        }
-
-        /* Logs */
-        .logs {
-            background: black;
-            padding: 15px;
-            margin-top: 20px;
-            font-family: monospace;
-            height: 120px;
-            overflow-y: auto;
-            border-radius: 8px;
-        }
-
-        /* Cards */
-        .card {
+        .summary-card {
             background: #0f172a;
-            padding: 15px;
-            margin-top: 15px;
+            padding: 20px;
             border-radius: 10px;
+            text-align: center;
             box-shadow: 0 0 10px rgba(56,189,248,0.2);
         }
 
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
+        .summary-card h2 {
+            margin: 10px 0;
         }
 
         /* Result */
@@ -102,11 +77,21 @@
         .safe { border-left: 5px solid #22c55e; }
         .danger { border-left: 5px solid #ef4444; }
 
-        /* Badges */
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .card {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
         .badge {
             padding: 5px 10px;
             border-radius: 6px;
-            font-size: 0.9em;
         }
 
         .low { background: #22c55e; }
@@ -114,7 +99,6 @@
         .high { background: #ef4444; }
         .critical { background: #7f1d1d; }
 
-        /* Indicator tags */
         .tag {
             display: inline-block;
             background: #1e293b;
@@ -123,7 +107,6 @@
             margin: 3px;
             font-size: 0.85em;
         }
-
     </style>
 </head>
 
@@ -131,21 +114,33 @@
 
 <div class="container">
 
-    <h1>🛡️ Mal-X Threat Analyzer</h1>
+    <h1>🛡️ Mal-X Dashboard</h1>
 
+    <!-- Upload -->
     <div class="upload-area" onclick="fileInput.click()">
-        Click or Drag File to Scan
+        Upload File for Analysis
         <input type="file" id="fileInput" hidden>
     </div>
 
-    <button class="btn" onclick="scanFile()" id="scanBtn" disabled>Start Scan</button>
+    <button class="btn" onclick="scanFile()" id="scanBtn" disabled>Scan File</button>
 
-    <div class="progress" id="progress">
-        <div class="progress-bar" id="bar"></div>
+    <!-- Summary Cards -->
+    <div class="summary" id="summary" style="display:none;">
+        <div class="summary-card">
+            <p>Risk Level</p>
+            <h2 id="risk"></h2>
+        </div>
+        <div class="summary-card">
+            <p>Confidence</p>
+            <h2 id="confidence"></h2>
+        </div>
+        <div class="summary-card">
+            <p>Score</p>
+            <h2 id="score"></h2>
+        </div>
     </div>
 
-    <div class="logs" id="logs"></div>
-
+    <!-- Result -->
     <div id="result"></div>
 
 </div>
@@ -153,44 +148,17 @@
 <script>
 
 let file;
+
 const fileInput = document.getElementById('fileInput');
 const scanBtn = document.getElementById('scanBtn');
-const logs = document.getElementById('logs');
-const progress = document.getElementById('progress');
-const bar = document.getElementById('bar');
 
 fileInput.addEventListener('change', e => {
     file = e.target.files[0];
     scanBtn.disabled = false;
-    log("File selected: " + file.name);
 });
-
-function log(msg){
-    logs.innerHTML += "[+] " + msg + "<br>";
-    logs.scrollTop = logs.scrollHeight;
-}
-
-function animateProgress(){
-    progress.style.display = "block";
-    let width = 0;
-    let interval = setInterval(() => {
-        width += 10;
-        bar.style.width = width + "%";
-        if(width >= 100) clearInterval(interval);
-    }, 200);
-}
 
 function scanFile(){
     if(!file) return;
-
-    logs.innerHTML = "";
-    bar.style.width = "0%";
-
-    log("Uploading...");
-    log("Hashing...");
-    log("Analyzing patterns...");
-
-    animateProgress();
 
     const formData = new FormData();
     formData.append('file', file);
@@ -201,7 +169,6 @@ function scanFile(){
     })
     .then(res => res.json())
     .then(data => {
-        log("Scan complete ✔");
         showResult(data);
     });
 }
@@ -209,6 +176,11 @@ function scanFile(){
 function showResult(data){
 
     const risk = data.verdict.risk.toLowerCase();
+
+    document.getElementById('summary').style.display = "grid";
+    document.getElementById('risk').innerText = data.verdict.risk;
+    document.getElementById('confidence').innerText = data.verdict.confidence + "%";
+    document.getElementById('score').innerText = data.analysis.score;
 
     document.getElementById('result').innerHTML = `
         <div class="result ${data.verdict.malicious ? 'danger' : 'safe'}">
@@ -225,18 +197,11 @@ function showResult(data){
                 </div>
 
                 <div class="card">
-                    <b>Threat Info</b><br>
-                    Risk: <span class="badge ${risk}">${data.verdict.risk}</span><br>
-                    Confidence: ${data.verdict.confidence}%<br>
-                    Score: ${data.analysis.score}
+                    <b>Hashes</b><br>
+                    MD5: ${data.hashes.md5}<br>
+                    SHA256: ${data.hashes.sha256}
                 </div>
 
-            </div>
-
-            <div class="card">
-                <b>Hashes</b><br>
-                MD5: ${data.hashes.md5}<br>
-                SHA256: ${data.hashes.sha256}
             </div>
 
             <div class="card">
